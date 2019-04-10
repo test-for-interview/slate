@@ -1,11 +1,10 @@
 ---
-title: API Reference
+title: Canotic Job API
 
 language_tabs: # must be one of https://git.io/vQNgJ
-  - shell
-  - ruby
-  - python
-  - javascript
+  - shell: cURL
+  - shell_session: CLI
+  - python: Python
 
 toc_footers:
   - <a href='#'>Sign Up for a Developer Key</a>
@@ -19,149 +18,232 @@ search: true
 
 # Introduction
 
-Welcome to the Kittn API! You can use our API to access Kittn API endpoints, which can get information on various cats, kittens, and breeds in our database.
+Welcome to the Canotic Job API. You can use our API to ....
 
-We have language bindings in Shell, Ruby, Python, and JavaScript! You can view code examples in the dark area to the right, and you can switch the programming language of the examples with the tabs in the top right.
-
-This example API documentation page was created with [Slate](https://github.com/lord/slate). Feel free to edit it and use it as a base for your own API's documentation.
+We offer library code snippets for CLI, cURL and Python. You can view code examples in the dark area to the right, and you can switch the programming language of the examples with the tabs in the top right.
 
 # Authentication
 
 > To authorize, use this code:
 
-```ruby
-require 'kittn'
-
-api = Kittn::APIClient.authorize!('meowmeowmeow')
+```shell
+-u "CANOTIC_API_KEY:" \
 ```
 
-```python
+```shell_session
 import kittn
 
 api = kittn.authorize('meowmeowmeow')
 ```
 
-```shell
+```python
 # With shell, you can just pass the correct header with each request
 curl "api_endpoint_here"
-  -H "Authorization: meowmeowmeow"
+  -H "Authorization: myAPIkey"
 ```
 
-```javascript
-const kittn = require('kittn');
+> Make sure to replace `myAPIkey` with your API key.
 
-let api = kittn.authorize('meowmeowmeow');
-```
+Canotic's Job API uses API keys to authenticate requets. You can view and manage your API keys in our [developer portal](http://canotic.com/developers).
 
-> Make sure to replace `meowmeowmeow` with your API key.
+You must include the API key in all API requests to the server in a header that looks like the following:
 
-Kittn uses API keys to allow access to the API. You can register a new Kittn API key at our [developer portal](http://example.com/developers).
-
-Kittn expects for the API key to be included in all API requests to the server in a header that looks like the following:
-
-`Authorization: meowmeowmeow`
+`Authorization: myAPIkey`
 
 <aside class="notice">
-You must replace <code>meowmeowmeow</code> with your personal API key.
+You must replace <code>myAPIkey</code> with your personal API key.
 </aside>
 
-# Kittens
+# Jobs
 
-## Get All Kittens
+## Create a job
 
-```ruby
-require 'kittn'
+```shell
+curl "API_ENDPOINT:/apps/APP_ID:" \
+  -u "CANOTIC_API_KEY:" \
+  -d callback_url="http://www.example.com/callback" \
+  -d inputs=[{"data_url":"https://your-s3-bucket.s3.amazonaws.com/self-driving-car.png"}] \
+  -d inputs_file="https//bucket.s3.amazonaws.com/data/data.json"
+```
 
-api = Kittn::APIClient.authorize!('meowmeowmeow')
-api.kittens.get
+```shell_session
+canotic create_job --app_id "APP_ID:" --callback_url "http://www.example.com/callback" --inputs [{"data_url":"https://your-s3-bucket.s3.amazonaws.com/self-driving-car.png"}] --inputs_file "https//bucket.s3.amazonaws.com/data/data.json"
 ```
 
 ```python
-import kittn
-
-api = kittn.authorize('meowmeowmeow')
-api.kittens.get()
+import canotic as ca
+    
+    client = ca.client("CANOTIC_API_KEY:")
+    
+    client.create_job(
+        api_id="APP_ID:"
+        callback_url='http://www.example.com/callback',
+        inputs=[{"data_url":"http://i.imgur.com/XOJbalC.jpg"}],
+        inputs_file="https//bucket.s3.amazonaws.com/data/data.json",
+    )
 ```
 
-```shell
-curl "http://example.com/api/kittens"
-  -H "Authorization: meowmeowmeow"
-```
-
-```javascript
-const kittn = require('kittn');
-
-let api = kittn.authorize('meowmeowmeow');
-let kittens = api.kittens.get();
-```
-
-> The above command returns JSON structured like this:
+> Response:
 
 ```json
-[
-  {
-    "id": 1,
-    "name": "Fluffums",
-    "breed": "calico",
-    "fluffiness": 6,
-    "cuteness": 7
-  },
-  {
-    "id": 2,
-    "name": "Max",
-    "breed": "unknown",
-    "fluffiness": 5,
-    "cuteness": 10
-  }
-]
+{
+      "jobs": [
+        {
+          "job_id": "5774cc78b01249ab09f089dd",
+          "created_at": "2016-06-23T09:09:34.752Z",
+          "callback_url": "http://www.example.com/callback",
+          "app_id": "60D31EB37595DD44584BE5EF363283E3",
+          "status": "pending",
+          "input": {
+            "data_url": "https://your-s3-bucket.s3.amazonaws.com/self-driving-car.png"
+          },
+          "metadata": {}
+        }
+      ],
+      "total": 1,
+      "limit": 100,
+      "offset": 0,
+      "has_more": false
+    }
 ```
 
-This endpoint retrieves all kittens.
+This endpoint creates a new job.
 
 ### HTTP Request
 
-`GET http://example.com/api/kittens`
+`GET http://canotic.com/api/jobs/`
 
 ### Query Parameters
 
-Parameter | Default | Description
+Parameter | Type | Description
 --------- | ------- | -----------
-include_cats | false | If set to true, the result will also include cats.
-available | true | If set to false, the result will include kittens that have already been adopted.
+app_id | string | The app ID for which you want to create a new job
+callback_url | string | Where we will POST the job results. See the [callbacks section](#callbacks) for further details.
+inputs_file | object | A JSON file containing all your inputs
 
-<aside class="success">
-Remember — a happy kitten is an authenticated kitten!
-</aside>
+## Get a job
 
-## Get a Specific Kitten
+```shell
+curl "API_ENDPOINT:/jobs/JOB_ID:" \
+      -u "CANOTIC_API_KEY:"
+```
 
-```ruby
+```shell_session
+canotic fetch_job --job_id "JOB_ID:"
+```
+
+```python
+import canotic as ca
+    
+    client = ca.client("CANOTIC_API_KEY:")
+    job_id = "JOB_ID:"
+    
+    client.fetch_job(job_id)
+```
+
+> Response:
+
+```json
+{
+      "job_id": "576ba74eec471ff9b01557cc",
+      "completed_at": "2016-06-23T09:10:02.798Z",
+      "created_at": "2016-06-23T09:09:34.752Z",
+      "callback_url": "http://www.example.com/callback",
+      "app_id": "60D31EB37595DD44584BE5EF363283E3",
+      "status": "completed",
+      "callback_succeeded": true,
+      "input": {
+        "data_url": "https://your-s3-bucket.s3.amazonaws.com/cute_dog.png"
+      },
+      "output": {
+        "category": "dog"
+      },
+      "metadata": {}
+    }
+```
+
+This endpoint retrieves a specific job.
+
+### HTTP Request
+
+`GET http://canotic.com/api/jobs/<ID>`
+
+### URL Parameters
+
+Parameter | Description
+--------- | -----------
+job_id | The ID of the job you want to retrieve
+
+## Cancel a job
+
+```shell
+curl "API_ENDPOINT:/jobs/JOB_ID:/cancel" \
+      -u "CANOTIC_API_KEY:"
+```
+
+```shell_session
+canotic cancel_job --job_id "JOB_ID:"
+```
+
+```python
+import canotic as ca
+    
+    client = ca.client("CANOTIC_API_KEY:")
+    job_id = "JOB_ID:"
+    
+    client.cancel_job(job_id)
+```
+
+> Response:
+
+```json
+{
+      "job_id": "576ba74eec471ff9b01557cc",
+      "created_at": "2016-06-23T09:09:34.752Z",
+      "callback_url": "http://www.example.com/callback",
+      "app_id": "60D31EB37595DD44584BE5EF363283E3",
+      "status": "canceled",
+      "input": {
+        "data_url": "https://your-s3-bucket.s3.amazonaws.com/cute_dog.png"
+      },
+      "metadata": {}
+    }
+```
+
+This endpoint cancels a specific job.
+
+### HTTP Request
+
+`DELETE http://canotic.com/api/jobs/<ID>`
+
+### URL Parameters
+
+Parameter | Description
+--------- | -----------
+ID | The ID of the kitten to delete
+
+## Restart a job
+
+```shell
 require 'kittn'
 
 api = Kittn::APIClient.authorize!('meowmeowmeow')
 api.kittens.get(2)
 ```
 
-```python
+```shell_session
 import kittn
 
 api = kittn.authorize('meowmeowmeow')
 api.kittens.get(2)
 ```
 
-```shell
+```python
 curl "http://example.com/api/kittens/2"
   -H "Authorization: meowmeowmeow"
 ```
 
-```javascript
-const kittn = require('kittn');
-
-let api = kittn.authorize('meowmeowmeow');
-let max = api.kittens.get(2);
-```
-
-> The above command returns JSON structured like this:
+> Response:
 
 ```json
 {
@@ -173,67 +255,78 @@ let max = api.kittens.get(2);
 }
 ```
 
-This endpoint retrieves a specific kitten.
+This endpoint retrieves a specific job.
 
 <aside class="warning">Inside HTML code blocks like this one, you can't use Markdown, so use <code>&lt;code&gt;</code> blocks to denote code.</aside>
 
 ### HTTP Request
 
-`GET http://example.com/kittens/<ID>`
+`GET http://canotic.com/api/jobs/<ID>`
 
 ### URL Parameters
 
 Parameter | Description
 --------- | -----------
-ID | The ID of the kitten to retrieve
+job_id | The ID of the job you want to restart
 
-## Delete a Specific Kitten
+## Get all jobs
 
-```ruby
+```shell
 require 'kittn'
 
 api = Kittn::APIClient.authorize!('meowmeowmeow')
-api.kittens.delete(2)
+api.kittens.get(2)
 ```
 
-```python
+```shell_session
 import kittn
 
 api = kittn.authorize('meowmeowmeow')
-api.kittens.delete(2)
+api.kittens.get(2)
 ```
 
-```shell
+```python
 curl "http://example.com/api/kittens/2"
-  -X DELETE
   -H "Authorization: meowmeowmeow"
 ```
 
-```javascript
-const kittn = require('kittn');
-
-let api = kittn.authorize('meowmeowmeow');
-let max = api.kittens.delete(2);
-```
-
-> The above command returns JSON structured like this:
+> Response:
 
 ```json
 {
   "id": 2,
-  "deleted" : ":("
+  "name": "Max",
+  "breed": "unknown",
+  "fluffiness": 5,
+  "cuteness": 10
 }
 ```
 
-This endpoint deletes a specific kitten.
+This endpoint retrieves all jobs.
+
+<aside class="warning">Inside HTML code blocks like this one, you can't use Markdown, so use <code>&lt;code&gt;</code> blocks to denote code.</aside>
 
 ### HTTP Request
 
-`DELETE http://example.com/kittens/<ID>`
+`GET http://canotic.com/api/jobs/<ID>`
 
-### URL Parameters
+### URL Parameter (optional)
 
 Parameter | Description
 --------- | -----------
-ID | The ID of the kitten to delete
+app_id | The ID of the app you want to retrieve all the jobs from
 
+# Callbacks
+
+On your jobs, you will be required to supply a `callback_url`, a fully qualified URL that we will POST with the results of the job when completed. The data will be served as a JSON body (`application/json`). Alternately, you can set a default callback URL in your profile, which will be used for jobs that do not specify one.
+
+Additionally, in order to simplify testing and add support for email automation pipelines, you may provide an **email address** as the `callback_url`. In this case, each completed job will result in an email sent with the body as the job's JSON payload.
+
+## POST data
+
+|  Attribute | Type | Description |
+|---|---|---|
+| job_id | string | A unique identifier for a job |
+| status | string | The status of the job when it was completed. Normally completed, but can also be error in the case that a job failed processing. |
+| output | object | An object containing the output of the job (based on the particular app type). For dog v cat, for example, this will just be, e.g., "category"="dog".  |
+| job | object | The full job object for reference and convenience. |
